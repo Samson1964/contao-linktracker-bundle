@@ -1,0 +1,32 @@
+<?php
+$GLOBALS['TL_CSS'][] = 'bundles/contaolinkscollection/css/style.css'; 
+?>
+
+<div class="<?= $this->class ?> block"<?= $this->cssID ?><?php if ($this->style): ?> style="<?= $this->style ?>"<?php endif; ?>>
+
+	<?php if($this->menu): ?>
+		<div class="menu">
+			<ul>
+			<?php foreach($this->menu as $m): ?>
+				<li><a href="<?= $m['link'] ?>"><?= $m['title'] ?></a></li>
+			<?php endforeach; ?>
+			</ul>
+		</div>
+	<?php endif; ?>
+
+	<?php if($this->links): ?>
+		<div class="toplinks links">
+			<h1>Toplinks</h1>
+			<ol type="1">
+				<?= $this->links ?>
+			</ol>
+		</div>
+	<?php endif; ?>
+
+	<?php if($this->counter): ?>
+		<div class="counter">
+			Die Datenbank enthält <b><?= $this->counter['categories'] ?></b> Kategorien mit <b><?= $this->counter['links'] ?></b> Links.
+		</div>
+	<?php endif; ?>
+
+</div>
