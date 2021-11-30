@@ -36,29 +36,48 @@ class LinkClick
 		                                   ->execute(1, $id);
 		if(!$objLink)
 		{
-			\System::log('[Linktracker] Forwarding link ID '.$id.' not exist', __CLASS__.'::'.__FUNCTION__, TL_ERROR);
+			\System::log('[Linktracker] Link ID '.$id.' not exist', __CLASS__.'::'.__FUNCTION__, TL_ERROR);
 			header('HTTP/1.1 501 Not Implemented');
 			throw new \ErrorException('Link ID not found',2,1,basename(__FILE__),__LINE__);
 		}
 
-		// Klick zählen und weiterleiten
-		$tstamp = time();
-		$set = array
-		(
-			'pid'        => $id,
-			'tstamp'     => $tstamp,
-			'clickTime'  => $tstamp,
-			'ip'         => $_SERVER['REMOTE_ADDR'],
-			'browser'    => $_SERVER['HTTP_USER_AGENT'],
-			'published'  => 1,
-		);
-		\Database::getInstance()->prepare('INSERT INTO tl_linktracker_items %s')
-		                        ->set($set)
-		                        ->executeUncached($id);
-
-		\System::log('[Linktracker] Forwarding link ID '.$id.': '.$objLink->url, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
+		// Klick ggfs. zählen und weiterleiten
+		if(self::is_bot())
+		{
+			// Besucher ist ein Bot
+			\System::log('[Linktracker] Link ID '.$id.' not tracked (Bot): '.$_SERVER['HTTP_USER_AGENT'], __CLASS__.'::'.__FUNCTION__, TL_ERROR);
+		}
+		else
+		{
+			// kein Bot, Aufruf zählen
+			$tstamp = time();
+			$set = array
+			(
+				'pid'        => $id,
+				'tstamp'     => $tstamp,
+				'clickTime'  => $tstamp,
+				'ip'         => $_SERVER['REMOTE_ADDR'],
+				'browser'    => $_SERVER['HTTP_USER_AGENT'],
+				'published'  => 1,
+			);
+			\Database::getInstance()->prepare('INSERT INTO tl_linktracker_items %s')
+			                        ->set($set)
+			                        ->executeUncached($id);
+		}
+		\System::log('[Linktracker] Forwarding Link ID '.$id.': '.$objLink->url, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
 		\Controller::redirect($objLink->url);
 
+	}
+
+	function is_bot()
+	{
+	
+		if(isset($_SERVER['HTTP_USER_AGENT']))
+		{
+			return preg_match('/rambler|abacho|acoi|accona|aspseek|altavista|estyle|scrubby|lycos|geona|ia_archiver|alexa|sogou|skype|facebook|twitter|pinterest|linkedin|naver|bing|google|yahoo|duckduckgo|yandex|baidu|teoma|xing|java\/1.7.0_45|bot|crawl|slurp|spider|mediapartners|\sask\s|\saol\s/i', $_SERVER['HTTP_USER_AGENT']);
+		}
+		
+		return false;
 	}
 }
 

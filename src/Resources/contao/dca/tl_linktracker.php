@@ -46,8 +46,9 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 		),
 		'label' => array
 		(
-			'fields'                  => array('id', 'title', 'url'),
+			'fields'                  => array('id', 'title', 'url', 'hits'),
 			'showColumns'             => true,
+			'label_callback'          => array('tl_linktracker', 'viewLabels'),
 		),
 		'global_operations' => array
 		(
@@ -157,6 +158,10 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			),
 			'sql'                     => "char(1) NOT NULL default ''"
 		),  
+		'hits' => array
+		(
+			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['hits'],
+		),
 	)
 );
 
@@ -294,6 +299,69 @@ class tl_linktracker extends Backend
 		$this->Database->prepare("UPDATE tl_linktracker SET tstamp=". time() .", published='" . ($blnPublished ? '' : '1') . "' WHERE id=?")
 		               ->execute($intId);
 		$this->createNewVersion('tl_linktracker', $intId);
+	}
+
+	/**
+	 * Zeigt zu einem Datensatz die eingetragenen Lizenzen an
+	 *
+	 * @param array                $row
+	 * @param string               $label
+	 * @param Contao\DataContainer $dc
+	 * @param array                $args        Index 6 ist das Feld lizenzen
+	 *
+	 * @return array
+	 */
+	public function viewLabels($row, $label, Contao\DataContainer $dc, $args)
+	{
+
+		// Datum heute, gestern, vorgestern usw. festlegen
+		$zeit = time();
+		$tag = date("d", $zeit); // Tag
+		$monat = date("m", $zeit); // Monat
+		$jahr = date("Y", $zeit); // Jahr
+		$abstand = array();
+		$abstand[0] = mktime(0, 0, 0, $monat, $tag, $jahr);
+		$abstand[1] = strtotime("-1 day", $abstand[0]);
+		$abstand[2] = strtotime("-2 day", $abstand[0]);
+		$abstand[3] = strtotime("-3 day", $abstand[0]);
+		$abstand[4] = strtotime("-4 day", $abstand[0]);
+
+		// Gesamtaufrufe des Links laden
+		$objHits = \Database::getInstance()->prepare("SELECT * FROM tl_linktracker_items WHERE pid = ?")
+		                                   ->execute($row['id']);
+		if($objHits->numRows)
+		{
+			$args[3] = '<b>'.$objHits->numRows.'</b> (';
+			$tage = array();
+			// Vorherige Tage zählen
+			for($x = 0; $x < count($abstand); $x++)
+			{
+				if($x == 0) $bis = $zeit;
+				else $bis = $abstand[$x-1];
+				$objHits = \Database::getInstance()->prepare("SELECT * FROM tl_linktracker_items WHERE pid = ? AND clickTime >= ? AND clickTime <= ?")
+				                                   ->execute($row['id'], $abstand[$x], $bis);
+				if($objHits->numRows)
+				{
+					$tage[] = $objHits->numRows;
+				}
+				else
+				{
+					$tage[] = 0;
+				}
+			}
+			$args[3] .= implode('/', $tage);
+			$args[3] .= ')';
+		}
+		else
+		{
+			$args[3] = 0;
+		}
+
+		// Hilfetext hinzufügen
+		$args[3] = '<span title="Gesamt (Heute und letzte 4 Tage)">'.$args[3].'</span>';
+
+		// Datensatz komplett zurückgeben
+		return $args;
 	}
 
 }
