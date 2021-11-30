@@ -21,6 +21,7 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 	'config' => array
 	(
 		'dataContainer'               => 'Table',
+		'ctable'                      => array('tl_linktracker_items'),
 		'switchToEdit'                => true,
 		'enableVersioning'            => true,
 		'sql' => array
@@ -41,23 +42,15 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			'mode'                    => 1,
 			'fields'                  => array('title'),
 			'flag'                    => 1,
-			'panelLayout'             => 'filter;search,limit'
+			'panelLayout'             => 'filter;sort,search,limit'
 		),
 		'label' => array
 		(
-			'fields'                  => array('title', 'typ'),
-			'format'                  => '%s [<i>%s</i>]',
+			'fields'                  => array('id', 'title', 'url'),
 			'showColumns'             => true,
 		),
 		'global_operations' => array
 		(
-			'kategorien' => array
-			(
-				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['kategorien'],
-				'href'                => 'table=tl_linktracker_categories',
-				'icon'                => 'bundles/contaolinktracker/images/kategorien.png',
-				'attributes'          => 'onclick="Backend.getScrollOffset();"'
-			),
 			'all' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['MSC']['all'],
@@ -115,7 +108,7 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 	// Palettes
 	'palettes' => array
 	(
-		'default'                     => '{title_legend},title;{options_legend},typ;{publish_legend},published'
+		'default'                     => '{title_legend},title,url;{publish_legend},published'
 	),
 
 	// Fields
@@ -123,6 +116,7 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 	(
 		'id' => array
 		(
+			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['id'],
 			'sql'                     => "int(10) unsigned NOT NULL auto_increment"
 		),
 		'tstamp' => array
@@ -134,25 +128,21 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['title'],
 			'exclude'                 => true,
 			'search'                  => true,
+			'sorting'                 => true,
 			'inputType'               => 'text',
 			'eval'                    => array('mandatory'=>true, 'maxlength'=>255),
 			'sql'                     => "varchar(255) NOT NULL default ''"
 		),
-		'typ' => array
+		'url' => array
 		(
-			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['typ'],
+			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['url'],
 			'exclude'                 => true,
-			'filter'                  => true,
-			'default'                 => 'E',
-			'inputType'               => 'select',
-			'options'                 => $GLOBALS['TL_LANG']['tl_linktracker']['typen'], 
-			'eval'                    => array
-			(
-				'doNotCopy'           => false,
-				'tl_class'            => 'long',
-			),
-			'sql'                     => "char(1) NOT NULL default ''"
-		),  
+			'search'                  => true,
+			'sorting'                 => true,
+			'inputType'               => 'text',
+			'eval'                    => array('mandatory'=>true, 'rgxp'=>'url', 'decodeEntities'=>true, 'maxlength'=>255, 'dcaPicker'=>true, 'tl_class'=>'w50'),
+			'sql'                     => "varchar(255) NOT NULL default ''"
+		),
 		'published' => array
 		(
 			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['published'],
@@ -189,19 +179,6 @@ class tl_linktracker extends Backend
 	{
 		parent::__construct();
 		$this->import('BackendUser', 'User');
-	}
-
-	public function getTemplates($dc)
-	{
-		if(version_compare(VERSION.BUILD, '2.9.0', '>=') && version_compare(VERSION.BUILD, '4.8.0', '<'))
-		{
-			// Den 2. Parameter gibt es nur ab Contao 2.9 bis 4.7
-			return $this->getTemplateGroup('mod_linktracker_', $dc->activeRecord->id);
-		}
-		else
-		{
-			return $this->getTemplateGroup('mod_linktracker_');
-		}
 	}
 
 	/**
@@ -252,7 +229,7 @@ class tl_linktracker extends Backend
 	}
 
 	/**
-	 * Ändert das Aussehen des Toggle-Buttons.
+	 * Ã„ndert das Aussehen des Toggle-Buttons.
 	 * @param $row
 	 * @param $href
 	 * @param $label

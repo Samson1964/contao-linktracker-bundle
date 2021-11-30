@@ -14,7 +14,7 @@ use Contao\Controller;
  * Initialize the system
  */
 define('TL_MODE', 'FE');
-define('TL_SCRIPT', 'bundles/contaolinkscollection/go.php');
+define('TL_SCRIPT', 'bundles/contaolinktracker/go.php');
 require($_SERVER['DOCUMENT_ROOT'].'/../system/initialize.php');
 
 /**
@@ -23,45 +23,41 @@ require($_SERVER['DOCUMENT_ROOT'].'/../system/initialize.php');
  */
 class LinkClick
 {
-	protected $id;
 
 	public function __construct()
 	{
-		$this->id = intval(\Input::get('id'));
 	}
 
 	public function run()
 	{
-		$ip = $_SERVER['REMOTE_ADDR'];
+		$id = intval(\Input::get('id'));
 
-		$objLink = \Database::getInstance()->prepare('SELECT * FROM tl_linkscollection_links WHERE published = ? AND id = ?')
-		                                   ->execute(1, $this->id);
-		if(!$objLink->next())
+		$objLink = \Database::getInstance()->prepare('SELECT * FROM tl_linktracker WHERE published = ? AND id = ?')
+		                                   ->execute(1, $id);
+		if(!$objLink)
 		{
-			\System::log('[Linkscollection] Forwarding link ID '.$this->id.' not exist', __CLASS__.'::'.__FUNCTION__, TL_ERROR);
+			\System::log('[Linktracker] Forwarding link ID '.$id.' not exist', __CLASS__.'::'.__FUNCTION__, TL_ERROR);
 			header('HTTP/1.1 501 Not Implemented');
 			throw new \ErrorException('Link ID not found',2,1,basename(__FILE__),__LINE__);
 		}
 
-		// Update, wenn IP ungleich
-		if($ip != $objLink->ip)
-		{
-			$tstamp = time();
-			$set = array
-			(
-				'hits'    => $objLink->hits + 1,
-				'ip'      => $ip,
-				'ipdate'  => $tstamp,
-			);
-			\Database::getInstance()->prepare('UPDATE tl_linkscollection_links %s WHERE id = ?')
-			                        ->set($set)
-			                        ->executeUncached($this->id);
-		}
+		// Klick zählen und weiterleiten
+		$tstamp = time();
+		$set = array
+		(
+			'pid'        => $id,
+			'tstamp'     => $tstamp,
+			'clickTime'  => $tstamp,
+			'ip'         => $_SERVER['REMOTE_ADDR'],
+			'browser'    => $_SERVER['HTTP_USER_AGENT'],
+			'published'  => 1,
+		);
+		\Database::getInstance()->prepare('INSERT INTO tl_linktracker_items %s')
+		                        ->set($set)
+		                        ->executeUncached($id);
 
-		$url = \Schachbulle\ContaoLinkscollectionBundle\Klassen\Linkscollection::getWeblink($objLink->url, $objLink->webarchiv);
-
-		\System::log('[Linkscollection] Forwarding link ID '.$objLink->id.': '.$url, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
-		\Controller::redirect($url);
+		\System::log('[Linktracker] Forwarding link ID '.$id.': '.$objLink->url, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
+		\Controller::redirect($objLink->url);
 
 	}
 }

@@ -18,6 +18,6 @@ array_insert($GLOBALS['BE_MOD']['content'], 1, array
 (
 	'linktracker' => array
 	(
-		'tables'         => array('tl_linktracker'),
+		'tables'         => array('tl_linktracker', 'tl_linktracker_items'),
 	)
 ));
