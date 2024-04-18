@@ -10,8 +10,9 @@
         }
     ],
     "require": {
-        "php": "^5.6 || ^7.0",
-        "contao/core-bundle": "^4"
+        "php": "^5.6 || ^7.0 || ^8.0",
+        "contao/core-bundle": "^4",
+        "codefog/contao-haste": "*"
     },
     "conflict": {
         "contao/core": "*",
