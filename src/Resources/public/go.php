@@ -31,6 +31,7 @@ class LinkClick
 	public function run()
 	{
 		$id = intval(\Input::get('id'));
+		$option = intval(\Input::get('option'));
 
 		$objLink = \Database::getInstance()->prepare('SELECT * FROM tl_linktracker WHERE published = ? AND id = ?')
 		                                   ->execute(1, $id);
@@ -41,7 +42,7 @@ class LinkClick
 			throw new \ErrorException('Link ID not found',2,1,basename(__FILE__),__LINE__);
 		}
 
-		// Klick ggfs. zählen und weiterleiten
+		// Klick ggfs. zÃ¤hlen und weiterleiten
 		if(self::is_bot())
 		{
 			// Besucher ist ein Bot
@@ -49,7 +50,7 @@ class LinkClick
 		}
 		else
 		{
-			// kein Bot, Aufruf zählen
+			// kein Bot, Aufruf zÃ¤hlen
 			$tstamp = time();
 			$set = array
 			(
@@ -64,9 +65,19 @@ class LinkClick
 			                        ->set($set)
 			                        ->executeUncached($id);
 		}
-		\System::log('[Linktracker] Forwarding Link ID '.$id.': '.$objLink->url, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
-		\Controller::redirect($objLink->url);
-
+		if(isset($option) == 'image')
+		{
+			// Bild zurÃ¼ckliefern
+			\System::log('[Linktracker] Create image ID '.$id, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
+			header('Content-type: image/gif');
+			readfile(TL_ROOT.'/vendor/schachbulle/contao-linktracker-bundle/src/Resources/public/image.gif');
+		}
+		else
+		{
+			// Link weiterleiten
+			\System::log('[Linktracker] Forwarding Link ID '.$id.': '.$objLink->url, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
+			\Controller::redirect($objLink->url);
+		}
 	}
 
 	function is_bot()
@@ -86,4 +97,3 @@ class LinkClick
  */
 $objClick = new LinkClick();
 $objClick->run();
-

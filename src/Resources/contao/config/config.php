@@ -21,3 +21,8 @@ array_insert($GLOBALS['BE_MOD']['content'], 1, array
 		'tables'         => array('tl_linktracker', 'tl_linktracker_items'),
 	)
 ));
+
+/**
+ * Hooks
+ */
+$GLOBALS['TL_HOOKS']['replaceInsertTags'][] = array('Schachbulle\ContaoLinktrackerBundle\Tags\Linktracker', 'go');

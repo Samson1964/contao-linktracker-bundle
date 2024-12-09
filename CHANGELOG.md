@@ -1,5 +1,10 @@
 # Linktracker
 
+## Version 1.2.0 (2024-12-09)
+
+* Add: Insert-Tag linktracker
+* Change: URL nicht mehr als Pflichtfeld, um Bildlinks zu ermöglichen
+
 ## Version 1.1.0 (2024-04-18)
 
 * Add: codefog/contao-haste
