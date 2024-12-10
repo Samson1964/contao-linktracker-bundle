@@ -1,5 +1,9 @@
 # Linktracker
 
+## Version 1.2.4 (2024-12-10)
+
+* Fix: Inserttags in Links werden nicht ersetzt -> \Controller::replaceInsertTags hinzugefügt
+
 ## Version 1.2.3 (2024-12-10)
 
 * Fix: Hostausgabe fehlt in Inserttag linktracker -> \Environment::get('url') hinzugefügt

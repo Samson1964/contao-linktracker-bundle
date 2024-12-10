@@ -76,7 +76,7 @@ class LinkClick
 		{
 			// Link weiterleiten
 			\System::log('[Linktracker] Forwarding Link ID '.$id.': '.$objLink->url, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
-			\Controller::redirect($objLink->url);
+			\Controller::redirect(\Controller::replaceInsertTags($objLink->url));
 		}
 	}
 
