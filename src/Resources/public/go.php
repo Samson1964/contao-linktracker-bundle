@@ -1,5 +1,4 @@
 <?php
-//ini_set('display_errors', '1');
 /**
  * Contao Open Source CMS, Copyright (C) 2005-2013 Leo Feyer
  *
@@ -31,7 +30,7 @@ class LinkClick
 	public function run()
 	{
 		$id = intval(\Input::get('id'));
-		$option = intval(\Input::get('option'));
+		$option = \Input::get('option');
 
 		$objLink = \Database::getInstance()->prepare('SELECT * FROM tl_linktracker WHERE published = ? AND id = ?')
 		                                   ->execute(1, $id);
@@ -65,7 +64,8 @@ class LinkClick
 			                        ->set($set)
 			                        ->executeUncached($id);
 		}
-		if(isset($option) && $option == 'image')
+
+		if($option == 'image')
 		{
 			// Bild zurückliefern
 			\System::log('[Linktracker] Create image ID '.$id, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);
