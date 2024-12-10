@@ -40,9 +40,9 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 		'sorting' => array
 		(
 			'mode'                    => 1,
-			'fields'                  => array('title'),
-			'flag'                    => 1,
-			'panelLayout'             => 'filter;sort,search,limit'
+			'fields'                  => array('title', 'url'),
+			'flag'                    => 11,
+			'panelLayout'             => 'filter,sort;search,limit'
 		),
 		'label' => array
 		(
@@ -109,7 +109,13 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['show'],
 				'href'                => 'act=show',
 				'icon'                => 'show.gif'
-			)
+			),
+			'statistik' => array
+			(
+				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['statistik'],
+				'href'                => 'key=statistik',
+				'icon'                => 'bundles/contaolinktracker/counter.png',
+			),
 		)
 	),
 
@@ -137,6 +143,7 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			'exclude'                 => true,
 			'search'                  => true,
 			'sorting'                 => true,
+			'flag'                    => 11,
 			'inputType'               => 'text',
 			'eval'                    => array('mandatory'=>true, 'maxlength'=>255),
 			'sql'                     => "varchar(255) NOT NULL default ''"
@@ -147,6 +154,7 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			'exclude'                 => true,
 			'search'                  => true,
 			'sorting'                 => true,
+			'flag'                    => 11,
 			'inputType'               => 'text',
 			'eval'                    => array('mandatory'=>false, 'rgxp'=>'url', 'decodeEntities'=>true, 'maxlength'=>255, 'dcaPicker'=>true, 'tl_class'=>'w50'),
 			'sql'                     => "varchar(255) NOT NULL default ''"
@@ -156,7 +164,6 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['published'],
 			'exclude'                 => true,
 			'filter'                  => true,
-			'flag'                    => 1,
 			'default'                 => true,
 			'inputType'               => 'checkbox',
 			'eval'                    => array

@@ -65,7 +65,7 @@ class LinkClick
 			                        ->set($set)
 			                        ->executeUncached($id);
 		}
-		if(isset($option) == 'image')
+		if(isset($option) && $option == 'image')
 		{
 			// Bild zurückliefern
 			\System::log('[Linktracker] Create image ID '.$id, __CLASS__.'::'.__FUNCTION__, TL_ACCESS);

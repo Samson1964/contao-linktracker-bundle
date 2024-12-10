@@ -19,6 +19,7 @@ array_insert($GLOBALS['BE_MOD']['content'], 1, array
 	'linktracker' => array
 	(
 		'tables'         => array('tl_linktracker', 'tl_linktracker_items'),
+		'statistik'      => array('Schachbulle\ContaoLinktrackerBundle\Modules\Statistik', 'go'),
 	)
 ));
 
