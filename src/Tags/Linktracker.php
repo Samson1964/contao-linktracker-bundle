@@ -33,12 +33,12 @@ class Linktracker extends \Frontend
 				if(isset($arrSplit[2]) && $arrSplit[2] == 'image')
 				{
 					// Ein Bildlink wird zurückgegeben. Beim Abruf des Bildes wird der Zugriff gezählt.
-					return '<img src="bundles/contaolinktracker/go.php?id='.$arrSplit[1].'&option=image">';
+					return '<img src="'.\Environment::get('url').'/bundles/contaolinktracker/go.php?id='.$arrSplit[1].'&option=image">';
 				}
 				else
 				{
 					// Kein optionaler Parameter. Es wird nur der Link zurückgegeben.
-					return 'bundles/contaolinktracker/go.php?id='.$arrSplit[1];
+					return \Environment::get('url').'/bundles/contaolinktracker/go.php?id='.$arrSplit[1];
 				}
 			}
 		}

@@ -1,5 +1,9 @@
 # Linktracker
 
+## Version 1.2.3 (2024-12-10)
+
+* Fix: Hostausgabe fehlt in Inserttag linktracker -> \Environment::get('url') hinzugefügt
+
 ## Version 1.2.2 (2024-12-10)
 
 * Fix: go.php liefert immer nur noch die Grafik aus (unter PHP 7 und Contao 4.13/4.9 - unter PHP 8 scheint alles okay) -> evtl. war die Umwandlung von option mit intval verantwortlich
