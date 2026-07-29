@@ -1,4 +1,4 @@
-# Linktracker
+# Linktracker Changelog
 
 ## Version 1.2.4 (2024-12-10)
 
