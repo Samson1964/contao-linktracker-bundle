@@ -1,5 +1,9 @@
 # Linktracker Changelog
 
+## Version 1.2.5 (2026-07-29)
+
+* Fix: Warning: Undefined array key "deleteConfirm" bei contao:migrate -> Lesezugriffe auf $GLOBALS['TL_LANG'] in den DCA-Dateien mit `?? null` bzw. `?? array()` abgesichert, da der DcaLoader die Sprachdateien noch nicht geladen hat
+
 ## Version 1.2.4 (2024-12-10)
 
 * Fix: Inserttags in Links werden nicht ersetzt -> \Controller::replaceInsertTags hinzugefügt
