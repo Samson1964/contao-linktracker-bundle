@@ -1,5 +1,12 @@
 # Linktracker Changelog
 
+## Version 1.2.6 (2026-07-30)
+
+* Fix: Ein Klick mit langem User-Agent brach mit „SQLSTATE[22001]: Data too long for column 'browser'" ab und lieferte Status 500. Der User-Agent wird jetzt auf die Spaltenbreite von 255 Zeichen gekürzt; verbreitete Kennungen sind über 300 Zeichen lang
+* Fix: Fehlte der User-Agent-Header ganz, meldete PHP 8 „Undefined array key HTTP_USER_AGENT". Gleiches für REMOTE_ADDR
+* Fix: Die Prüfung auf eine nicht vorhandene Link-ID konnte nie zutreffen, weil `execute()` auch ohne Treffer ein Result-Objekt liefert. Unbekannte oder unveröffentlichte IDs liefen dadurch mit leerer URL in die Weiterleitung, statt wie vorgesehen abgebrochen zu werden — geprüft wird jetzt `numRows`
+* Change: Kommentarblöcke für `run()` und `is_bot()` nachgetragen
+
 ## Version 1.2.5 (2026-07-29)
 
 * Fix: Warning: Undefined array key "deleteConfirm" bei contao:migrate -> Lesezugriffe auf $GLOBALS['TL_LANG'] in den DCA-Dateien mit `?? null` bzw. `?? array()` abgesichert, da der DcaLoader die Sprachdateien noch nicht geladen hat
