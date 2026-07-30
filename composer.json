@@ -1,7 +1,14 @@
 {
     "name": "schachbulle/contao-linktracker-bundle",
     "type": "contao-bundle",
-    "description": "Linktracker-Bundle für Contao 4",
+    "description": "Zählt Klicks auf Links und wertet sie im Backend aus.",
+    "keywords": [
+        "contao",
+        "links",
+        "tracking",
+        "statistik"
+    ],
+    "homepage": "https://github.com/Samson1964/contao-linktracker-bundle",
     "license": "LGPL-3.0-or-later",
     "authors": [
         {

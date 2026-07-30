@@ -1,5 +1,9 @@
 # Linktracker Changelog
 
+## Version 1.2.7 (2026-07-30)
+
+* Change: Beschreibung, Keywords und Homepage in der composer.json ergänzt, damit Packagist das Paket verständlich darstellt und über die Suche auffindbar macht
+
 ## Version 1.2.6 (2026-07-30)
 
 * Fix: Ein Klick mit langem User-Agent brach mit „SQLSTATE[22001]: Data too long for column 'browser'" ab und lieferte Status 500. Der User-Agent wird jetzt auf die Spaltenbreite von 255 Zeichen gekürzt; verbreitete Kennungen sind über 300 Zeichen lang
