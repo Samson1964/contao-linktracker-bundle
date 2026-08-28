@@ -1,49 +1,74 @@
 <?php
 
-/**
- * Contao Open Source CMS
- *
- * Copyright (c) 2005-2014 Leo Feyer
- *
- * @package   fh-counter
- * @author    Frank Hoppe
- * @license   GNU/LGPL
- * @copyright Frank Hoppe 2014
- */
+declare(strict_types=1);
 
 namespace Schachbulle\ContaoLinktrackerBundle\Tags;
 
-class Linktracker extends \Frontend
-{
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-	public function go($strTag)
+/**
+ * Stellt das Insert-Tag {{linktracker::ID}} bereit.
+ *
+ * Die Klasse hängt am Hook replaceInsertTags und wird als Dienst registriert.
+ * Sie erbt bewusst nicht mehr von Contao\Frontend: Contao 5 registriert keine
+ * globalen Klassenaliasse mehr, und die geerbten Eigenschaften wurden hier
+ * ohnehin nie genutzt.
+ */
+class Linktracker
+{
+	/**
+	 * @param UrlGeneratorInterface $router Erzeugt die Adresse der Tracking-Route.
+	 *                                      Früher wurde sie aus Environment::get('url')
+	 *                                      und einem festen Pfad zusammengesetzt; über
+	 *                                      den Router bleibt sie auch dann richtig,
+	 *                                      wenn Contao in einem Unterverzeichnis liegt.
+	 */
+	public function __construct(private readonly UrlGeneratorInterface $router)
+	{
+	}
+
+	/**
+	 * Löst das Insert-Tag {{linktracker::ID}} beziehungsweise
+	 * {{linktracker::ID::image}} auf.
+	 *
+	 * Ohne zweiten Parameter kommt die nackte Adresse des getrackten Links
+	 * zurück, die im href-Attribut eines Verweises stehen kann. Mit dem
+	 * Parameter "image" kommt ein fertiges img-Element zurück, das eine
+	 * transparente 1x1-Grafik lädt; damit lassen sich Abrufe in E-Mails zählen.
+	 *
+	 * Die Adresse wird absolut erzeugt, weil das Tag auch in Newslettern und
+	 * anderen Inhalten steht, die ausserhalb der Website gelesen werden.
+	 *
+	 * @param string $strTag Der Inhalt des Insert-Tags ohne die geschweiften
+	 *                       Klammern, also etwa "linktracker::32::image"
+	 *
+	 * @return string|false Der erzeugte HTML-Code beziehungsweise die Adresse,
+	 *                      oder false, wenn das Tag nicht zu dieser Klasse gehört
+	 *                      oder keine ID enthält — Contao reicht es dann an die
+	 *                      übrigen Hook-Teilnehmer weiter
+	 */
+	public function onReplaceInsertTags(string $strTag): string|false
 	{
 		$arrSplit = explode('::', $strTag);
 
-		// Inserttag {{linktracker::ID::Option}}
-		// Liefert zu einer ID des Linktracker-Moduls den entsprechenden HTML-Code
-		// Parameter 1 (ID) = ID des Linktrackers
-		// Parameter 2 (Option) = optional, Art der HTML-Ausgabe festlegen
-		if($arrSplit[0] == 'linktracker' || $arrSplit[0] == 'cache_linktracker')
+		if ('linktracker' !== $arrSplit[0] && 'cache_linktracker' !== $arrSplit[0])
 		{
-			// Parameter 1 angegeben?
-			if(isset($arrSplit[1]))
-			{
-				// Parameter 2 (image) angegeben?
-				if(isset($arrSplit[2]) && $arrSplit[2] == 'image')
-				{
-					// Ein Bildlink wird zurückgegeben. Beim Abruf des Bildes wird der Zugriff gezählt.
-					return '<img src="'.\Environment::get('url').'/bundles/contaolinktracker/go.php?id='.$arrSplit[1].'&option=image">';
-				}
-				else
-				{
-					// Kein optionaler Parameter. Es wird nur der Link zurückgegeben.
-					return \Environment::get('url').'/bundles/contaolinktracker/go.php?id='.$arrSplit[1];
-				}
-			}
+			return false;
 		}
 
-		return false; // Tag nicht dabei
-	}
+		if (!isset($arrSplit[1]) || '' === $arrSplit[1])
+		{
+			return false;
+		}
 
+		$intId = (int) $arrSplit[1];
+		$strUrl = $this->router->generate('linktracker_go', array('id' => $intId), UrlGeneratorInterface::ABSOLUTE_URL);
+
+		if (isset($arrSplit[2]) && 'image' === $arrSplit[2])
+		{
+			return '<img src="' . htmlspecialchars($strUrl . '?option=image', ENT_QUOTES) . '" alt="" width="1" height="1">';
+		}
+
+		return $strUrl;
+	}
 }

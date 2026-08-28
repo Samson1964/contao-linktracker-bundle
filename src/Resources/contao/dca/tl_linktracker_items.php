@@ -1,19 +1,16 @@
 <?php
 
-/**
- * Contao Open Source CMS
- *
- * Copyright (c) 2005-2014 Leo Feyer
- *
- * @package News
- * @link    https://contao.org
- * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
- */
+declare(strict_types=1);
 
-use Contao\CoreBundle\DataContainer\PaletteManipulator;
+use Contao\Backend;
+use Contao\Config;
+use Contao\Date;
+use Contao\DataContainer;
+use Contao\DC_Table;
+use Contao\StringUtil;
 
 /**
- * Table tl_linktracker_items
+ * Tabelle tl_linktracker_items
  */
 $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 (
@@ -21,7 +18,9 @@ $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 	// Config
 	'config' => array
 	(
-		'dataContainer'               => 'Table',
+		// Der Kurzname 'Table' ist unter Contao 5 entfallen, der vollständige
+		// Klassenname wird von beiden Fassungen verstanden.
+		'dataContainer'               => DC_Table::class,
 		'ptable'                      => 'tl_linktracker',
 		'switchToEdit'                => true,
 		'enableVersioning'            => true,
@@ -40,7 +39,7 @@ $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 	(
 		'sorting' => array
 		(
-			'mode'                    => 4,
+			'mode'                    => DataContainer::MODE_PARENT,
 			'disableGrouping'         => true,
 			'fields'                  => array('clickTime DESC'),
 			'headerFields'            => array('id', 'title', 'url'),
@@ -63,46 +62,40 @@ $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker_items']['edit'],
 				'href'                => 'act=edit',
-				'icon'                => 'edit.gif'
+				'icon'                => 'edit.svg'
 			),
 			'copy' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker_items']['copy'],
 				'href'                => 'act=paste&amp;mode=copy',
-				'icon'                => 'copy.gif'
+				'icon'                => 'copy.svg'
 			),
 			'cut' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker_items']['cut'],
 				'href'                => 'act=paste&amp;mode=cut',
-				'icon'                => 'cut.gif'
+				'icon'                => 'cut.svg'
 			),
 			'delete' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker_items']['delete'],
 				'href'                => 'act=delete',
-				'icon'                => 'delete.gif',
+				'icon'                => 'delete.svg',
 				'attributes'          => 'onclick="if(!confirm(\'' . ($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? null) . '\'))return false;Backend.getScrollOffset()"'
 			),
+			// Umschalter des Contao-Kerns statt des Haste-Umschalters, siehe
+			// die gleichlautende Stelle in tl_linktracker.
 			'toggle' => array
 			(
-				'label'                => &$GLOBALS['TL_LANG']['tl_linktracker_items']['toggle'],
-				'attributes'           => 'onclick="Backend.getScrollOffset()"',
-				'haste_ajax_operation' => array
-				(
-					'field'            => 'published',
-					'options'          => array
-					(
-						array('value' => '', 'icon' => 'invisible.svg'),
-						array('value' => '1', 'icon' => 'visible.svg'),
-					),
-				),
+				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker_items']['toggle'],
+				'href'                => 'act=toggle&amp;field=published',
+				'icon'                => 'visible.svg'
 			),
 			'show' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker_items']['show'],
 				'href'                => 'act=show',
-				'icon'                => 'show.gif'
+				'icon'                => 'show.svg'
 			)
 		)
 	),
@@ -144,7 +137,7 @@ $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 			'exclude'                 => true,
 			'search'                  => true,
 			'sorting'                 => true,
-			'flag'                    => 1,
+			'flag'                    => DataContainer::SORT_INITIAL_LETTER_ASC,
 			'inputType'               => 'text',
 			'eval'                    => array('maxlength'=>128, 'tl_class'=>'w50 clr'),
 			'sql'                     => "varchar(128) NOT NULL default ''"
@@ -155,7 +148,7 @@ $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 			'exclude'                 => true,
 			'search'                  => true,
 			'sorting'                 => true,
-			'flag'                    => 1,
+			'flag'                    => DataContainer::SORT_INITIAL_LETTER_ASC,
 			'inputType'               => 'text',
 			'eval'                    => array('maxlength'=>255, 'tl_class'=>'w50'),
 			'sql'                     => "varchar(255) NOT NULL default ''"
@@ -167,40 +160,41 @@ $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 			'search'                  => false,
 			'sorting'                 => false,
 			'filter'                  => true,
+			'toggle'                  => true,
 			'inputType'               => 'checkbox',
-			'eval'                    => array('tl_class' => 'w50','isBoolean' => true),
+			'eval'                    => array('tl_class' => 'w50', 'isBoolean' => true),
 			'sql'                     => "char(1) NOT NULL default ''"
 		),
 	)
 );
 
 /**
- * Class tl_linktracker_items
+ * Hilfsmethoden für den Data Container tl_linktracker_items.
  *
- * Provide miscellaneous methods that are used by the data configuration array.
- * @copyright  Leo Feyer 2005-2014
- * @author     Leo Feyer <https://contao.org>
- * @package    News
+ * Die Klasse leitet von Contao\Backend ab, damit Contao sie über
+ * System::importStatic() erzeugen kann. Der vollständige Namensraum ist
+ * Pflicht: Contao 5 registriert keine globalen Klassenaliasse mehr.
  */
 class tl_linktracker_items extends Backend
 {
-
-	var $nummer = 0;
-
 	/**
-	 * Import the back end user object
+	 * Erzeugt die einzeilige Darstellung eines Klicks in der Listenansicht.
+	 *
+	 * Gezeigt werden Zeitpunkt, IP-Adresse und Browserkennung. Das Datumsformat
+	 * kommt aus den Contao-Einstellungen statt aus einer festen Zeichenkette,
+	 * damit die Ausgabe zum Rest des Backends passt.
+	 *
+	 * @param array<string,mixed> $arrRow Der Klickdatensatz aus tl_linktracker_items
+	 *
+	 * @return string Der fertige HTML-Block für die Zeile
 	 */
-	public function __construct()
-	{
-		parent::__construct();
-		$this->import('BackendUser', 'User');
-	}
-
 	public function listRecords($arrRow)
 	{
-		$temp = '<div class="tl_content_left"><b>'.date('d.m.Y H:i:s', $arrRow['clickTime']).'</b> '.$arrRow['ip'].' - '.$arrRow['browser'];
+		$strZeit = Date::parse(Config::get('datimFormat'), (int) $arrRow['clickTime']);
 
-		return $temp.'</div>';
+		return '<div class="tl_content_left"><b>' . $strZeit . '</b> '
+			. StringUtil::specialchars((string) $arrRow['ip']) . ' &ndash; '
+			. StringUtil::specialchars((string) $arrRow['browser'])
+			. '</div>';
 	}
-
 }

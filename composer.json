@@ -17,9 +17,15 @@
         }
     ],
     "require": {
-        "php": "^5.6 || ^7.0 || ^8.0",
-        "contao/core-bundle": "^4",
-        "codefog/contao-haste": "*"
+        "php": "^8.1",
+        "contao/core-bundle": "^4.13 || ^5.0",
+        "doctrine/dbal": "^3.3 || ^4.0",
+        "psr/log": "^1.0 || ^2.0 || ^3.0",
+        "symfony/config": "^5.4 || ^6.0 || ^7.0",
+        "symfony/dependency-injection": "^5.4 || ^6.0 || ^7.0",
+        "symfony/http-foundation": "^5.4 || ^6.0 || ^7.0",
+        "symfony/http-kernel": "^5.4 || ^6.0 || ^7.0",
+        "symfony/routing": "^5.4 || ^6.0 || ^7.0"
     },
     "conflict": {
         "contao/core": "*",
@@ -27,7 +33,7 @@
     },
     "require-dev": {
         "contao/manager-plugin": "^2.0",
-        "doctrine/doctrine-cache-bundle": "^1.3"
+        "phpunit/phpunit": "^9.6 || ^10.5"
     },
     "extra": {
         "contao-manager-plugin": "Schachbulle\\ContaoLinktrackerBundle\\ContaoManager\\Plugin"
@@ -35,6 +41,18 @@
     "autoload": {
         "psr-4": {
             "Schachbulle\\ContaoLinktrackerBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Schachbulle\\ContaoLinktrackerBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "contao-components/installer": true,
+            "contao/manager-plugin": true,
+            "php-http/discovery": true
         }
     },
     "support": {

@@ -1,5 +1,29 @@
 # Linktracker Changelog
 
+## Version 2.0.0 (2026-08-28)
+
+Diese Fassung läuft unter Contao 4.13 **und** Contao 5 mit PHP 8.1 bis 8.4.
+Beide Fassungen wurden gegen die echten Quellen von Contao 4.13.58 und 5.7.7
+mit PHP 8.4.24 geprüft.
+
+* Change: Die Zählung läuft nicht mehr über die Datei `src/Resources/public/go.php`, sondern über einen Symfony-Controller mit eigener Route. Die alte Datei band `system/initialize.php` ein und setzte die Konstanten `TL_MODE` und `TL_ROOT` voraus — alles drei gibt es unter Contao 5 nicht mehr
+* Add: Neue Adresse `/linktracker/{id}`; die alte Adresse `bundles/contaolinktracker/go.php?id=…` wird weiterhin bedient, damit bereits verschickte Links nicht ins Leere laufen. Wo Contao die Bundle-Dateien kopiert statt verlinkt, ist die verwaiste `public/bundles/contaolinktracker/go.php` nach dem Update von Hand zu löschen (siehe README)
+* Add: Tests für den Controller und das Insert-Tag unter `tests/`
+* Add: Abschnitt „Einbindung" in der Eingabemaske. Er zeigt die beiden Insert-Tags und die unmittelbare Adresse, jeweils bereits mit der ID des Datensatzes, zum Kopieren mit einem Klick
+* Fix: Der Kopf `if (!defined('TL_ROOT')) die(...)` in der `config.php` hätte die Datei unter Contao 5 kommentarlos beendet, das Backend-Modul wäre spurlos verschwunden
+* Fix: `array_insert()` beim Einhängen des Backend-Moduls ersetzt — die Contao-Hilfsfunktionen gibt es unter Contao 5 nicht mehr
+* Fix: `'dataContainer' => 'Table'` durch den vollständigen Klassennamen ersetzt; der Kurzname ist unter Contao 5 entfallen
+* Fix: Die DCA-Klassen leiteten von `Backend` ohne Namensraum ab und riefen `specialchars()` und `Image::` auf. Contao 5 registriert keine globalen Klassenaliasse mehr und kennt `specialchars()` nicht
+* Fix: `System::log()` durch den Contao-Fehlerkanal ersetzt, ebenfalls unter Contao 5 entfallen
+* Change: Der Umschalter „Veröffentlicht" kommt jetzt vom Contao-Kern statt von `codefog/contao-haste`; die Abhängigkeit ist damit entfallen
+* Change: Der Hook `replaceInsertTags` wird als Dienst-Tag angemeldet statt in der `config.php`; die Adresse im Insert-Tag stammt jetzt vom Router und stimmt deshalb auch in einem Unterverzeichnis
+* Fix: Die Beschriftungen der Schaltflächen in beiden Listenansichten fehlten vollständig, das Backend zeigte die nackten Schlüssel „edit", „copy" und so fort
+* Fix: Die Spalte „Aufrufe" las bei jedem Seitenaufbau sämtliche Klickdatensätze in den Speicher, und das je Zeile fünfmal — jetzt `COUNT(*)`
+* Change: Die Statistikseite ist weiterhin nicht umgesetzt, zeigt aber einen Hinweis statt einer leeren Seite
+* Change: Der Zeitpunkt in der Klickliste folgt jetzt dem im Backend eingestellten Datumsformat
+* Change: Unbekannte oder unveröffentlichte Link-IDs beantwortet der Tracker mit 404 statt mit 501 und einer Ausnahme
+* Change: `declare(strict_types=1)` in allen PHP-Dateien, deutsche Kommentarblöcke an allen Funktionen
+
 ## Version 1.2.7 (2026-07-30)
 
 * Change: Beschreibung, Keywords und Homepage in der composer.json ergänzt, damit Packagist das Paket verständlich darstellt und über die Suche auffindbar macht

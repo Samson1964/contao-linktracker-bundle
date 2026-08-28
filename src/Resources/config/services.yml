@@ -1,9 +1,34 @@
 services:
-    _instanceof:
-        Contao\CoreBundle\Framework\FrameworkAwareInterface:
-            calls:
-                - ["setFramework", ["@contao.framework"]]
+    _defaults:
+        autoconfigure: true
 
-        Symfony\Component\DependencyInjection\ContainerAwareInterface:
-            calls:
-                - ["setContainer", ["@service_container"]]
+    # Der Controller wird unter seinem vollständigen Klassennamen registriert,
+    # weil die Routen ihn genau darunter ansprechen. Der Insert-Tag-Parser hat
+    # in Contao 4.13 wie in Contao 5 keinen Alias auf den Klassennamen, deshalb
+    # wird er über seine Dienst-ID eingehängt.
+    #
+    # Der Tag controller.service_arguments ist Pflicht: Er stellt der
+    # Controller-Auflösung den Dienst überhaupt erst zur Verfügung. Ohne ihn
+    # bliebe der Dienst privat, und Symfony käme an ihn nicht heran — es fiele
+    # auf "new LinktrackerController()" zurück und bräche mit einem
+    # ArgumentCountError ab, weil der Konstruktor Argumente verlangt. Die
+    # Klasse erbt bewusst nicht von AbstractController, deshalb setzt Symfony
+    # den Tag nicht von selbst. (Der Tag macht den Dienst dabei auch public;
+    # geprüft in Symfony 5.4 wie 7.4, RegisterControllerArgumentLocatorsPass.)
+    Schachbulle\ContaoLinktrackerBundle\Controller\LinktrackerController:
+        arguments:
+            - '@contao.framework'
+            - '@database_connection'
+            - '@contao.insert_tag.parser'
+            - '@monolog.logger.contao.error'
+        tags:
+            - { name: controller.service_arguments }
+
+    # Das Insert-Tag {{linktracker::…}}. Früher wurde es in der config.php als
+    # Hook eingetragen; als Dienst mit Tag läuft es in beiden Contao-Fassungen
+    # und bekommt den Router ordentlich hineingereicht.
+    Schachbulle\ContaoLinktrackerBundle\Tags\Linktracker:
+        arguments:
+            - '@router'
+        tags:
+            - { name: contao.hook, hook: replaceInsertTags, method: onReplaceInsertTags }

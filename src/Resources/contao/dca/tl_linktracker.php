@@ -1,18 +1,16 @@
 <?php
 
-/**
- * Contao Open Source CMS
- *
- * Copyright (c) 2005-2014 Leo Feyer
- *
- * @package News
- * @link    https://contao.org
- * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
- */
+declare(strict_types=1);
 
+use Contao\Backend;
+use Contao\DataContainer;
+use Contao\DC_Table;
+use Contao\StringUtil;
+use Contao\System;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
- * Table tl_linktracker
+ * Tabelle tl_linktracker
  */
 $GLOBALS['TL_DCA']['tl_linktracker'] = array
 (
@@ -20,7 +18,9 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 	// Config
 	'config' => array
 	(
-		'dataContainer'               => 'Table',
+		// Der Kurzname 'Table' ist unter Contao 5 entfallen, der vollständige
+		// Klassenname wird von beiden Fassungen verstanden.
+		'dataContainer'               => DC_Table::class,
 		'ctable'                      => array('tl_linktracker_items'),
 		'switchToEdit'                => true,
 		'enableVersioning'            => true,
@@ -39,9 +39,9 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 	(
 		'sorting' => array
 		(
-			'mode'                    => 1,
+			'mode'                    => DataContainer::MODE_SORTED,
 			'fields'                  => array('title', 'url'),
-			'flag'                    => 11,
+			'flag'                    => DataContainer::SORT_ASC,
 			'panelLayout'             => 'filter,sort;search,limit'
 		),
 		'label' => array
@@ -66,49 +66,43 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['edit'],
 				'href'                => 'table=tl_linktracker_items',
-				'icon'                => 'edit.gif'
+				'icon'                => 'edit.svg'
 			),
 			'editheader' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['editheader'],
 				'href'                => 'act=edit',
-				'icon'                => 'header.gif',
-				'button_callback'     => array('tl_linktracker', 'editHeader')
+				'icon'                => 'header.svg'
 			),
 			'copy' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['copy'],
 				'href'                => 'act=copy',
-				'icon'                => 'copy.gif',
-				'button_callback'     => array('tl_linktracker', 'copyArchive')
+				'icon'                => 'copy.svg'
 			),
 			'delete' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['delete'],
 				'href'                => 'act=delete',
-				'icon'                => 'delete.gif',
-				'attributes'          => 'onclick="if(!confirm(\'' . ($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? null) . '\'))return false;Backend.getScrollOffset()"',
-				'button_callback'     => array('tl_linktracker', 'deleteArchive')
+				'icon'                => 'delete.svg',
+				'attributes'          => 'onclick="if(!confirm(\'' . ($GLOBALS['TL_LANG']['MSC']['deleteConfirm'] ?? null) . '\'))return false;Backend.getScrollOffset()"'
 			),
+			// Der Umschalter kommt jetzt vom Contao-Kern statt von der
+			// Haste-Erweiterung. Contao 4.13 wie Contao 5 erkennen an
+			// "act=toggle&field=…" von selbst, dass hier ein Umschalter mit
+			// Ajax und wechselndem Symbol gerendert werden soll; Voraussetzung
+			// ist allein 'toggle' => true am Feld published.
 			'toggle' => array
 			(
-				'label'                => &$GLOBALS['TL_LANG']['tl_linktracker']['toggle'],
-				'attributes'           => 'onclick="Backend.getScrollOffset()"',
-				'haste_ajax_operation' => array
-				(
-					'field'            => 'published',
-					'options'          => array
-					(
-						array('value' => '', 'icon' => 'invisible.svg'),
-						array('value' => '1', 'icon' => 'visible.svg'),
-					),
-				),
+				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['toggle'],
+				'href'                => 'act=toggle&amp;field=published',
+				'icon'                => 'visible.svg'
 			),
 			'show' => array
 			(
 				'label'               => &$GLOBALS['TL_LANG']['tl_linktracker']['show'],
 				'href'                => 'act=show',
-				'icon'                => 'show.gif'
+				'icon'                => 'show.svg'
 			),
 			'statistik' => array
 			(
@@ -122,7 +116,7 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 	// Palettes
 	'palettes' => array
 	(
-		'default'                     => '{title_legend},title,url;{publish_legend},published'
+		'default'                     => '{title_legend},title,url;{einbindung_legend},einbindung;{publish_legend},published'
 	),
 
 	// Fields
@@ -143,9 +137,9 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			'exclude'                 => true,
 			'search'                  => true,
 			'sorting'                 => true,
-			'flag'                    => 11,
+			'flag'                    => DataContainer::SORT_ASC,
 			'inputType'               => 'text',
-			'eval'                    => array('mandatory'=>true, 'maxlength'=>255),
+			'eval'                    => array('mandatory'=>true, 'maxlength'=>255, 'tl_class'=>'w50'),
 			'sql'                     => "varchar(255) NOT NULL default ''"
 		),
 		'url' => array
@@ -154,10 +148,19 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			'exclude'                 => true,
 			'search'                  => true,
 			'sorting'                 => true,
-			'flag'                    => 11,
+			'flag'                    => DataContainer::SORT_ASC,
 			'inputType'               => 'text',
 			'eval'                    => array('mandatory'=>false, 'rgxp'=>'url', 'decodeEntities'=>true, 'maxlength'=>255, 'dcaPicker'=>true, 'tl_class'=>'w50'),
 			'sql'                     => "varchar(255) NOT NULL default ''"
+		),
+		// Reines Anzeigefeld ohne Datenbankspalte: Es zeigt, wie sich dieser
+		// Datensatz einbinden lässt. Bewusst ohne 'exclude', weil Contao 4.13
+		// ausgeschlossene Felder mit input_field_callback gar nicht erst
+		// darstellt.
+		'einbindung' => array
+		(
+			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['einbindung'],
+			'input_field_callback'    => array('tl_linktracker', 'showEinbindung'),
 		),
 		'published' => array
 		(
@@ -165,13 +168,14 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 			'exclude'                 => true,
 			'filter'                  => true,
 			'default'                 => true,
+			'toggle'                  => true,
 			'inputType'               => 'checkbox',
 			'eval'                    => array
 			(
 				'doNotCopy'           => true
 			),
 			'sql'                     => "char(1) NOT NULL default ''"
-		),  
+		),
 		'hits' => array
 		(
 			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker']['hits'],
@@ -181,133 +185,139 @@ $GLOBALS['TL_DCA']['tl_linktracker'] = array
 
 
 /**
- * Class tl_linktracker
+ * Hilfsmethoden für den Data Container tl_linktracker.
  *
- * Provide miscellaneous methods that are used by the data configuration array.
- * @copyright  Leo Feyer 2005-2014
- * @author     Leo Feyer <https://contao.org>
- * @package    News
+ * Die Klasse leitet von Contao\Backend ab, damit Contao sie über
+ * System::importStatic() erzeugen kann. Der vollständige Namensraum ist
+ * Pflicht: Contao 5 registriert keine globalen Klassenaliasse mehr.
  */
 class tl_linktracker extends Backend
 {
-
 	/**
-	 * Import the back end user object
-	 */
-	public function __construct()
-	{
-		parent::__construct();
-		$this->import('BackendUser', 'User');
-	}
-
-	/**
-	 * Return the edit header button
-	 * @param array
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @return string
-	 */
-	public function editHeader($row, $href, $label, $title, $icon, $attributes)
-	{
-		return ($this->User->isAdmin || count(preg_grep('/^tl_linktracker::/', $this->User->alexf)) > 0) ? '<a href="'.$this->addToUrl($href.'&amp;id='.$row['id']).'" title="'.specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ' : Image::getHtml(preg_replace('/\.gif$/i', '_.gif', $icon)).' ';
-	}
-
-
-	/**
-	 * Return the copy archive button
-	 * @param array
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @return string
-	 */
-	public function copyArchive($row, $href, $label, $title, $icon, $attributes)
-	{
-		return ($this->User->isAdmin || $this->User->hasAccess('create', 'newp')) ? '<a href="'.$this->addToUrl($href.'&amp;id='.$row['id']).'" title="'.specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ' : Image::getHtml(preg_replace('/\.gif$/i', '_.gif', $icon)).' ';
-	}
-
-
-	/**
-	 * Return the delete archive button
-	 * @param array
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @param string
-	 * @return string
-	 */
-	public function deleteArchive($row, $href, $label, $title, $icon, $attributes)
-	{
-		return ($this->User->isAdmin || $this->User->hasAccess('delete', 'newp')) ? '<a href="'.$this->addToUrl($href.'&amp;id='.$row['id']).'" title="'.specialchars($title).'"'.$attributes.'>'.Image::getHtml($icon, $label).'</a> ' : Image::getHtml(preg_replace('/\.gif$/i', '_.gif', $icon)).' ';
-	}
-
-	/**
-	 * Zeigt zu einem Datensatz die eingetragenen Lizenzen an
+	 * Ergänzt die Spalte "Aufrufe" in der Listenansicht um die tatsächlichen
+	 * Klickzahlen.
 	 *
-	 * @param array                $row
-	 * @param string               $label
-	 * @param Contao\DataContainer $dc
-	 * @param array                $args        Index 6 ist das Feld lizenzen
+	 * Ausgegeben wird die Gesamtzahl der Klicks und dahinter in Klammern die
+	 * Zahl für heute sowie die vier vorangegangenen Tage, durch Schrägstriche
+	 * getrennt. Das Feld "hits" hat keine Datenbankspalte, es dient nur als
+	 * Platzhalter für diese Ausgabe.
 	 *
-	 * @return array
+	 * @param array<string,mixed> $row   Der Datensatz aus tl_linktracker
+	 * @param string              $label Das bereits erzeugte Label; hier ungenutzt,
+	 *                                   weil bei showColumns die Spalten aus $args
+	 *                                   gebildet werden
+	 * @param DataContainer       $dc    Der aufrufende Data Container; hier ungenutzt
+	 * @param array<int,string>   $args  Die Spaltenwerte; Index 3 ist die Spalte
+	 *                                   "Aufrufe"
+	 *
+	 * @return array<int,string> Die Spaltenwerte mit gefüllter Aufrufspalte
 	 */
-	public function viewLabels($row, $label, Contao\DataContainer $dc, $args)
+	public function viewLabels($row, $label, DataContainer $dc, $args)
 	{
+		$objConnection = System::getContainer()->get('database_connection');
 
-		// Datum heute, gestern, vorgestern usw. festlegen
-		$zeit = time();
-		$tag = date("d", $zeit); // Tag
-		$monat = date("m", $zeit); // Monat
-		$jahr = date("Y", $zeit); // Jahr
-		$abstand = array();
-		$abstand[0] = mktime(0, 0, 0, $monat, $tag, $jahr);
-		$abstand[1] = strtotime("-1 day", $abstand[0]);
-		$abstand[2] = strtotime("-2 day", $abstand[0]);
-		$abstand[3] = strtotime("-3 day", $abstand[0]);
-		$abstand[4] = strtotime("-4 day", $abstand[0]);
+		// Tagesgrenzen bestimmen: heute 0 Uhr und die vier Tage davor.
+		$intHeute = mktime(0, 0, 0, (int) date('m'), (int) date('d'), (int) date('Y'));
+		$arrGrenzen = array($intHeute);
 
-		// Gesamtaufrufe des Links laden
-		$objHits = \Database::getInstance()->prepare("SELECT * FROM tl_linktracker_items WHERE pid = ?")
-		                                   ->execute($row['id']);
-		if($objHits->numRows)
+		for ($i = 1; $i <= 4; $i++)
 		{
-			$args[3] = '<b>'.$objHits->numRows.'</b> (';
-			$tage = array();
-			// Vorherige Tage zählen
-			for($x = 0; $x < count($abstand); $x++)
-			{
-				if($x == 0) $bis = $zeit;
-				else $bis = $abstand[$x-1];
-				$objHits = \Database::getInstance()->prepare("SELECT * FROM tl_linktracker_items WHERE pid = ? AND clickTime >= ? AND clickTime <= ?")
-				                                   ->execute($row['id'], $abstand[$x], $bis);
-				if($objHits->numRows)
-				{
-					$tage[] = $objHits->numRows;
-				}
-				else
-				{
-					$tage[] = 0;
-				}
-			}
-			$args[3] .= implode('/', $tage);
-			$args[3] .= ')';
-		}
-		else
-		{
-			$args[3] = 0;
+			$arrGrenzen[$i] = (int) strtotime('-' . $i . ' day', $intHeute);
 		}
 
-		// Hilfetext hinzufügen
-		$args[3] = '<span title="Gesamt (Heute und letzte 4 Tage)">'.$args[3].'</span>';
+		$intGesamt = (int) $objConnection->fetchOne(
+			'SELECT COUNT(*) FROM tl_linktracker_items WHERE pid = ?',
+			array($row['id'])
+		);
 
-		// Datensatz komplett zurückgeben
+		if (0 === $intGesamt)
+		{
+			$args[3] = '0';
+
+			return $args;
+		}
+
+		// COUNT(*) statt der früheren Zählung über numRows: Jene las bei jedem
+		// Seitenaufbau sämtliche Klickdatensätze in den Speicher, und das für
+		// jede Zeile der Liste fünfmal.
+		$arrTage = array();
+
+		foreach ($arrGrenzen as $i => $intVon)
+		{
+			$intBis = (0 === $i) ? time() : $arrGrenzen[$i - 1];
+
+			$arrTage[] = (int) $objConnection->fetchOne(
+				'SELECT COUNT(*) FROM tl_linktracker_items WHERE pid = ? AND clickTime >= ? AND clickTime <= ?',
+				array($row['id'], $intVon, $intBis)
+			);
+		}
+
+		$args[3] = sprintf(
+			'<span title="%s"><b>%d</b> (%s)</span>',
+			StringUtil::specialchars($GLOBALS['TL_LANG']['tl_linktracker']['hitsHelp'] ?? ''),
+			$intGesamt,
+			implode('/', $arrTage)
+		);
+
 		return $args;
 	}
 
+	/**
+	 * Erzeugt den Hinweis, wie sich der gerade bearbeitete Link einbinden lässt.
+	 *
+	 * Gezeigt werden die beiden Insert-Tags und die unmittelbare Adresse,
+	 * jeweils mit der echten ID des Datensatzes eingesetzt, damit sie sich
+	 * unverändert übernehmen lassen. Die Adresse stammt vom Router und nicht aus
+	 * einer festen Zeichenkette, damit sie auch dann stimmt, wenn Contao in
+	 * einem Unterverzeichnis läuft.
+	 *
+	 * @param DataContainer $dc     Liefert über id den Datensatz, um den es geht
+	 * @param string        $xlabel Zusätzliche Beschriftungen (Assistenten); wird
+	 *                              hier nicht gebraucht, gehört aber zur Signatur
+	 *
+	 * @return string Der fertige HTML-Block für die Eingabemaske
+	 */
+	public function showEinbindung(DataContainer $dc, $xlabel = '')
+	{
+		$intId = (int) $dc->id;
+
+		$strUrl = System::getContainer()->get('router')->generate(
+			'linktracker_go',
+			array('id' => $intId),
+			UrlGeneratorInterface::ABSOLUTE_URL
+		);
+
+		$arrBeispiele = array(
+			array(
+				'label' => $GLOBALS['TL_LANG']['tl_linktracker']['einbindungLink'] ?? '',
+				'code'  => '<a href="{{linktracker::' . $intId . '}}">…</a>',
+			),
+			array(
+				'label' => $GLOBALS['TL_LANG']['tl_linktracker']['einbindungBild'] ?? '',
+				'code'  => '{{linktracker::' . $intId . '::image}}',
+			),
+			array(
+				'label' => $GLOBALS['TL_LANG']['tl_linktracker']['einbindungUrl'] ?? '',
+				'code'  => $strUrl,
+			),
+		);
+
+		$strReturn = '<div class="widget">';
+		$strReturn .= '<p class="tl_help" style="margin-bottom:9px">' . StringUtil::specialchars($GLOBALS['TL_LANG']['tl_linktracker']['einbindungHelp'] ?? '') . '</p>';
+
+		foreach ($arrBeispiele as $arrBeispiel)
+		{
+			$strReturn .= '<h3><label>' . StringUtil::specialchars($arrBeispiel['label']) . '</label></h3>';
+
+			// Eingabefeld statt <code>: So lässt sich der Text mit einem Klick
+			// markieren und übernehmen. readonly verhindert versehentliche
+			// Änderungen, gespeichert wird ohnehin nichts — das Feld hat keine
+			// Datenbankspalte.
+			$strReturn .= '<input type="text" class="tl_text" readonly onclick="this.select()" value="' . StringUtil::specialchars($arrBeispiel['code']) . '" style="width:100%">';
+		}
+
+		$strReturn .= '</div>';
+
+		return $strReturn;
+	}
 }

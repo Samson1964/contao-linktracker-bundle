@@ -1,0 +1,25 @@
+# Routen des Linktrackers.
+#
+# Beide Routen zeigen auf denselben Controller. Die zweite bildet die Adresse
+# der früheren Datei go.php nach, damit bereits verschickte Links und bereits
+# gepflegte Verweise weiter funktionieren. Sie greift nur, weil go.php aus dem
+# Bundle entfernt wurde: Solange die Datei existierte, lieferte der Webserver
+# sie unmittelbar aus und Symfony sah den Aufruf gar nicht.
+
+linktracker_go:
+    path: /linktracker/{id}
+    defaults:
+        _controller: Schachbulle\ContaoLinktrackerBundle\Controller\LinktrackerController
+        _scope: frontend
+        _token_check: false
+    requirements:
+        id: \d+
+    methods: [GET]
+
+linktracker_go_legacy:
+    path: /bundles/contaolinktracker/go.php
+    defaults:
+        _controller: Schachbulle\ContaoLinktrackerBundle\Controller\LinktrackerController
+        _scope: frontend
+        _token_check: false
+    methods: [GET]

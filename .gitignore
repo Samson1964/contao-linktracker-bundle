@@ -3,5 +3,9 @@
 /vendor/
 /.DAV
 
-# PhpUnit
+# PHPUnit
 /phpunit.xml
+/var/
+
+# Private Arbeitsnotiz
+/TODO.md
