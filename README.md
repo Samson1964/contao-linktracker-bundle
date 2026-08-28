@@ -54,8 +54,45 @@ Damit die Route greift, darf die alte Datei nicht mehr im öffentlichen
 Verzeichnis liegen. Wo Contao die Bundle-Dateien verlinkt, erledigt sich das von
 selbst. Wo sie stattdessen kopiert werden — das kommt bei Hosting ohne
 Symlink-Rechte vor —, bleibt nach dem Update eine verwaiste Datei
-`public/bundles/contaolinktracker/go.php` liegen. Sie ist zu löschen; unter
-Contao 5 bricht sie sonst mit einem Fehler ab, statt den Aufruf durchzulassen.
+`public/bundles/contaolinktracker/go.php` liegen. Das Update löscht sie nicht,
+denn Contao kopiert nur, es räumt nicht auf. Solange sie da ist, liefert der
+Webserver sie unmittelbar aus, die Route kommt gar nicht zum Zug, und unter
+Contao 5 bricht die Datei mit einem Fehler ab.
+
+Am einfachsten ist es, sie einmal von Hand zu löschen. Wer keinen Dateizugriff
+hat, kann sie stattdessen am Webserver vorbeileiten.
+
+### Apache
+
+In `public/.htaccess` — die folgende Zeile **vor** den Block „If the requested
+filename exists" setzen, sonst liefert Apache die Datei vorher aus. Die
+Umgebungsvariable `BASE` wird weiter oben in derselben Datei gesetzt und sorgt
+dafür, dass die Regel auch in einem Unterverzeichnis funktioniert:
+
+```apache
+    # Linktracker: Die frühere go.php wurde durch eine Route ersetzt. Diese Zeile
+    # schickt den Aufruf am Dateisystem vorbei an den Front Controller, auch wenn
+    # noch eine verwaiste Kopie der Datei herumliegt.
+    RewriteRule ^bundles/contaolinktracker/go\.php$ %{ENV:BASE}/index.php [L]
+
+    # If the requested filename exists, simply serve it.
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+```
+
+Der Abfrageteil der Adresse (`?id=32`) bleibt dabei erhalten: Apache hängt ihn
+an, solange das Ziel selbst keinen enthält.
+
+### nginx
+
+Der folgende Block gehört in den `server`-Abschnitt. Eine `location =` hat
+Vorrang vor der Regel, die sonst alle `.php`-Dateien an PHP-FPM weiterreicht:
+
+```nginx
+location = /bundles/contaolinktracker/go.php {
+    rewrite ^ /index.php last;
+}
+```
 
 ## Backend
 
