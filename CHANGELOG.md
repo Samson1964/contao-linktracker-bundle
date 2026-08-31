@@ -1,5 +1,17 @@
 # Linktracker Changelog
 
+## Version 2.1.0 (2026-08-31)
+
+**Nach dem Update ist `contao:migrate` auszuführen**, es kommt eine Spalte hinzu.
+
+* Add: Die Statistikseite ist umgesetzt. Sie war seit 1.2.1 als Platzhalter angemeldet und zeigte bisher nur einen Hinweis
+* Add: Auswertung eines einzelnen Links über die Schaltfläche in der Listenansicht — Kennzahlen (gesamt, heute, 7 Tage, 30 Tage), ein Balkendiagramm der letzten 30 Tage, die Aufrufe je Monat und die häufigsten Browserkennungen mit Anteilen
+* Add: Übersicht über alle Links, wenn die Statistik ohne einen bestimmten Datensatz aufgerufen wird. Sie nennt je Link die Aufrufe und den letzten Zugriff und führt auch Links ohne einen einzigen Aufruf auf
+* Add: Neue Spalte `viaLegacy` in `tl_linktracker_items`. Sie hält fest, ob ein Klick über die alte Adresse `bundles/contaolinktracker/go.php` hereinkam. Ohne diese Angabe liess sich nicht beantworten, ob die alte Adresse noch gebraucht wird — aus Zeitpunkt, IP und Browserkennung geht die Herkunft nicht hervor. Datensätze aus der Zeit davor tragen den Vorgabewert; aussagekräftig ist deshalb erst, was nach dem Update hinzukommt
+* Add: Die Zahl der Aufrufe über die alte Adresse steht in beiden Ansichten der Statistik und lässt sich in der Klickliste als Filter setzen
+* Change: Die Rechnerei steckt in der neuen Klasse `Statistik\Auswertung`, die ohne Contao auskommt; `Modules\Statistik` besorgt nur noch die Umgebung. Dadurch liess sich die Auswertung gegen eine echte Datenbank prüfen statt gegen Attrappen
+* Add: 19 weitere Tests, darunter die Zeitraumgrenzen (ein Klick von heute früh gehört zu „heute", auch wenn er mehr als 24 Stunden zurückliegt) und Links ohne jeden Klick
+
 ## Version 2.0.0 (2026-08-28)
 
 Diese Fassung läuft unter Contao 4.13 **und** Contao 5 mit PHP 8.1 bis 8.4.

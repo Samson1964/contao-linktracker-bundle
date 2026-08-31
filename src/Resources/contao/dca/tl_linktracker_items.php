@@ -103,7 +103,7 @@ $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 	// Palettes
 	'palettes' => array
 	(
-		'default'                     => '{tracker_legend},clickTime,ip,browser;{publish_legend},published'
+		'default'                     => '{tracker_legend},clickTime,ip,browser,viaLegacy;{publish_legend},published'
 	),
 
 	// Fields
@@ -152,6 +152,23 @@ $GLOBALS['TL_DCA']['tl_linktracker_items'] = array
 			'inputType'               => 'text',
 			'eval'                    => array('maxlength'=>255, 'tl_class'=>'w50'),
 			'sql'                     => "varchar(255) NOT NULL default ''"
+		),
+		// Hält fest, ob der Klick über die alte Adresse
+		// bundles/contaolinktracker/go.php hereinkam. Ohne diese Angabe lässt
+		// sich nicht beurteilen, ob die alte Adresse noch gebraucht wird: Aus
+		// Zeitpunkt, IP und Browserkennung geht die Herkunft nicht hervor.
+		// Datensätze aus der Zeit vor Version 2.1.0 haben hier den Vorgabewert
+		// und zählen damit als "nicht über die alte Adresse" — sie stammen aber
+		// zum grossen Teil von dort. Aussagekräftig ist deshalb erst, was nach
+		// dem Update hinzukommt.
+		'viaLegacy' => array
+		(
+			'label'                   => &$GLOBALS['TL_LANG']['tl_linktracker_items']['viaLegacy'],
+			'exclude'                 => true,
+			'filter'                  => true,
+			'inputType'               => 'checkbox',
+			'eval'                    => array('tl_class' => 'w50', 'isBoolean' => true),
+			'sql'                     => "char(1) NOT NULL default ''"
 		),
 		'published' => array
 		(

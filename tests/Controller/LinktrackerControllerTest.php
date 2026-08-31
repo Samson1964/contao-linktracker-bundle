@@ -116,6 +116,43 @@ class LinktrackerControllerTest extends TestCase
 	}
 
 	/**
+	 * Ein Aufruf über die neue Adresse wird nicht als Altaufruf gekennzeichnet.
+	 */
+	public function testKennzeichnetDieNeueAdresseNicht(): void
+	{
+		$objConnection = $this->createMock(Connection::class);
+		$objConnection->method('fetchAssociative')->willReturn(array('url' => 'https://example.org/ziel'));
+		$objConnection->expects($this->once())->method('insert')->with(
+			'tl_linktracker_items',
+			$this->callback(static fn (array $arrSet): bool => '' === $arrSet['viaLegacy'])
+		);
+
+		$objRequest = $this->createRouteRequest(32);
+		$objRequest->attributes->set('_route', 'linktracker_go');
+
+		$this->createController($objConnection)($objRequest);
+	}
+
+	/**
+	 * Ein Aufruf über die alte Adresse wird gekennzeichnet. Nur so lässt sich
+	 * später beurteilen, ob diese Adresse noch gebraucht wird.
+	 */
+	public function testKennzeichnetDieAlteAdresse(): void
+	{
+		$objConnection = $this->createMock(Connection::class);
+		$objConnection->method('fetchAssociative')->willReturn(array('url' => 'https://example.org/ziel'));
+		$objConnection->expects($this->once())->method('insert')->with(
+			'tl_linktracker_items',
+			$this->callback(static fn (array $arrSet): bool => '1' === $arrSet['viaLegacy'])
+		);
+
+		$objRequest = new Request(array('id' => '32'), array(), array(), array(), array(), array('HTTP_USER_AGENT' => self::AGENT_BESUCHER));
+		$objRequest->attributes->set('_route', LinktrackerController::ROUTE_LEGACY);
+
+		$this->createController($objConnection)($objRequest);
+	}
+
+	/**
 	 * Ein Roboter wird weitergeleitet, aber nicht gezählt.
 	 */
 	public function testZaehltRoboterNicht(): void

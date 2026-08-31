@@ -26,6 +26,13 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class LinktrackerController
 {
 	/**
+	 * Name der Route, die die alte Adresse bundles/contaolinktracker/go.php
+	 * nachbildet. Aufrufe über diese Route werden beim Zählen gekennzeichnet,
+	 * damit sich beurteilen lässt, ob die Adresse noch gebraucht wird.
+	 */
+	public const ROUTE_LEGACY = 'linktracker_go_legacy';
+
+	/**
 	 * Baut den Controller mit allen Diensten auf, die für das Zählen und
 	 * Weiterleiten gebraucht werden.
 	 *
@@ -100,6 +107,7 @@ class LinktrackerController
 			$this->countClick($id, $request);
 		}
 
+
 		if ($blnImage)
 		{
 			return $this->createPixelResponse();
@@ -130,8 +138,14 @@ class LinktrackerController
 	/**
 	 * Schreibt einen Klick in die Tabelle tl_linktracker_items.
 	 *
+	 * Festgehalten wird auch, ob der Aufruf über die alte Adresse
+	 * bundles/contaolinktracker/go.php kam. Nur so lässt sich später
+	 * beantworten, ob diese Adresse noch gebraucht wird oder entfallen kann —
+	 * aus den übrigen Feldern geht die Herkunft nicht hervor.
+	 *
 	 * @param int     $id      ID des Links aus tl_linktracker, wird als pid abgelegt
-	 * @param Request $request Liefert IP-Adresse und Browserkennung des Aufrufers
+	 * @param Request $request Liefert IP-Adresse, Browserkennung und den Namen
+	 *                         der Route, über die der Aufruf hereinkam
 	 *
 	 * @return void
 	 */
@@ -148,6 +162,7 @@ class LinktrackerController
 			// 300 Zeichen lang; ungekürzt bricht MySQL den INSERT mit "Data too
 			// long for column 'browser'" ab und der Aufruf endet mit Status 500.
 			'browser'   => mb_substr($this->getUserAgent($request), 0, 255, 'UTF-8'),
+			'viaLegacy' => self::ROUTE_LEGACY === $request->attributes->get('_route') ? '1' : '',
 			'published' => '1',
 		));
 	}

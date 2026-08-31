@@ -103,3 +103,32 @@ IP-Adresse und Browserkennung.
 
 Aufrufe von Suchmaschinen und anderen Robotern werden anhand der Browserkennung
 erkannt und nicht gezählt; weitergeleitet wird trotzdem.
+
+### Statistik
+
+Die Schaltfläche mit dem Zählersymbol öffnet die Auswertung eines Links:
+
+* die Kennzahlen gesamt, heute, letzte 7 und letzte 30 Tage
+* ein Balkendiagramm der letzten 30 Tage, mit dem stärksten Tag als vollem
+  Ausschlag; ein Zeigen auf einen Balken nennt Datum und Anzahl
+* die Aufrufe je Monat, vom jüngsten an
+* die zehn häufigsten Browserkennungen mit ihrem Anteil
+
+Wird die Statistik ohne einen bestimmten Datensatz aufgerufen, erscheint eine
+Übersicht über alle Links, nach Häufigkeit sortiert. Links ohne einen einzigen
+Aufruf stehen ebenfalls darin — gerade sie sind ja oft der Anlass nachzusehen.
+
+Die Zeiträume beginnen um Mitternacht: Ein Klick von heute früh zählt zu
+„heute", auch wenn er mehr als 24 Stunden zurückliegt.
+
+### Wird die alte Adresse noch benutzt?
+
+Seit Version 2.1.0 hält der Tracker fest, ob ein Klick über die alte Adresse
+`bundles/contaolinktracker/go.php` hereinkam. Die Statistik weist die Zahl in
+beiden Ansichten aus, und in der Klickliste lässt sie sich als Filter setzen.
+
+Steht dort über mehrere Wochen eine Null, werden weder die Route
+`linktracker_go_legacy` noch die oben beschriebene Rewrite-Regel noch gebraucht.
+Zu beachten: Klicks aus der Zeit vor 2.1.0 tragen den Vorgabewert und zählen
+damit als *nicht* über die alte Adresse, obwohl sie zum grossen Teil von dort
+stammen. Aussagekräftig ist deshalb erst, was nach dem Update hinzukommt.

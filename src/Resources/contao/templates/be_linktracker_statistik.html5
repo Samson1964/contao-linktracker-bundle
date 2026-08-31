@@ -1,0 +1,170 @@
+<?php
+/**
+ * Backend-Template der Linktracker-Statistik.
+ *
+ * Erwartet vom Modul Schachbulle\ContaoLinktrackerBundle\Modules\Statistik:
+ * modus ("einzeln" oder "uebersicht"), backUrl, backBT, backBTTitle, lang und
+ * je nach Modus link/kennzahlen/diagramm/monate/browser beziehungsweise
+ * zeilen/summe.
+ *
+ * Die Gestaltung steht als <style> unmittelbar im Template statt in einer
+ * eigenen Datei unter Resources/public: So hängt die Darstellung nicht davon
+ * ab, ob die öffentlichen Bundle-Dateien verlinkt oder kopiert wurden, und es
+ * gibt beim Aktualisieren keine zwischengespeicherte alte Fassung.
+ *
+ * Farben sind bewusst so gewählt, dass sie auf hellem wie dunklem Untergrund
+ * lesbar bleiben: Die Schriftfarbe wird geerbt, Flächen und Linien entstehen
+ * aus currentColor mit Deckkraft. Contao 5 hat einen Dunkelmodus, Contao 4.13
+ * nicht — eine Umschaltung über prefers-color-scheme würde deshalb unter 4.13
+ * dunkle Flächen auf hellem Grund erzeugen.
+ */
+?>
+
+<div id="tl_buttons">
+  <a href="<?= Contao\StringUtil::ampersand($this->backUrl) ?>" class="header_back" title="<?= Contao\StringUtil::specialchars($this->backBTTitle) ?>" accesskey="b"><?= $this->backBT ?></a>
+</div>
+
+<style>
+.lt-stat { margin-bottom: 18px; }
+.lt-stat h3 { margin: 0 0 9px; }
+.lt-kennzahlen { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 18px; padding: 0; list-style: none; }
+.lt-kennzahlen li { flex: 1 1 120px; padding: 12px; border: 1px solid rgba(127,127,127,.35); border-radius: 3px; }
+.lt-kennzahlen strong { display: block; font-size: 1.7em; line-height: 1.2; }
+.lt-kennzahlen span { opacity: .75; font-size: .9em; }
+.lt-diagramm { display: flex; align-items: flex-end; gap: 2px; height: 160px; padding: 0 0 2px; border-bottom: 1px solid rgba(127,127,127,.45); }
+.lt-diagramm div { position: relative; flex: 1 1 0; min-width: 4px; background: rgba(127,127,127,.30); }
+.lt-diagramm div.hat-wert { background: #6da2c0; }
+.lt-achse { display: flex; gap: 2px; margin-top: 4px; font-size: .8em; opacity: .75; }
+.lt-achse span { flex: 1 1 0; min-width: 4px; text-align: center; overflow: hidden; white-space: nowrap; }
+.lt-tabelle { width: 100%; border-collapse: collapse; }
+.lt-tabelle th, .lt-tabelle td { padding: 5px 8px; text-align: left; border-bottom: 1px solid rgba(127,127,127,.25); vertical-align: top; }
+.lt-tabelle th { font-weight: bold; }
+.lt-tabelle td.lt-zahl, .lt-tabelle th.lt-zahl { text-align: right; white-space: nowrap; }
+.lt-tabelle td.lt-kennung { font-family: monospace; font-size: .85em; word-break: break-all; }
+.lt-balken { display: block; height: 6px; margin-top: 3px; background: #6da2c0; border-radius: 3px; min-width: 1px; }
+.lt-hinweis { opacity: .75; font-size: .9em; margin: 6px 0 0; }
+</style>
+
+<?php if ('einzeln' === $this->modus): ?>
+
+  <?php if (null === $this->link): ?>
+
+    <p class="tl_empty"><?= $this->lang['statistikUnbekannt'] ?? 'Zu dieser ID gibt es keinen Link.' ?></p>
+
+  <?php else: ?>
+
+    <div class="lt-stat">
+      <h2><?= Contao\StringUtil::specialchars($this->link['title']) ?></h2>
+      <?php if ('' !== (string) $this->link['url']): ?>
+        <p class="lt-hinweis"><?= Contao\StringUtil::specialchars($this->link['url']) ?></p>
+      <?php endif; ?>
+    </div>
+
+    <ul class="lt-kennzahlen">
+      <li><strong><?= $this->kennzahlen['gesamt'] ?></strong><span><?= $this->lang['statGesamt'] ?? 'Aufrufe gesamt' ?></span></li>
+      <li><strong><?= $this->kennzahlen['heute'] ?></strong><span><?= $this->lang['statHeute'] ?? 'heute' ?></span></li>
+      <li><strong><?= $this->kennzahlen['siebenTage'] ?></strong><span><?= $this->lang['stat7Tage'] ?? 'letzte 7 Tage' ?></span></li>
+      <li><strong><?= $this->kennzahlen['dreissigTage'] ?></strong><span><?= $this->lang['stat30Tage'] ?? 'letzte 30 Tage' ?></span></li>
+      <li><strong><?= $this->kennzahlen['ueberAlteAdresse'] ?></strong><span><?= $this->lang['statAlteAdresse'] ?? 'über die alte Adresse' ?></span></li>
+    </ul>
+
+    <div class="lt-stat">
+      <h3><?= $this->lang['statVerlauf'] ?? 'Aufrufe der letzten 30 Tage' ?></h3>
+
+      <?php if (0 === $this->diagramm['hoechstwert']): ?>
+        <p class="tl_empty"><?= $this->lang['statKeineImZeitraum'] ?? 'In diesem Zeitraum wurde der Link nicht aufgerufen.' ?></p>
+      <?php else: ?>
+        <div class="lt-diagramm">
+          <?php foreach ($this->diagramm['tage'] as $arrTag): ?>
+            <div class="<?= $arrTag['anzahl'] > 0 ? 'hat-wert' : '' ?>"
+                 style="height:<?= max($arrTag['hoehe'], $arrTag['anzahl'] > 0 ? 2 : 1) ?>%"
+                 title="<?= $arrTag['kurz'] ?> &ndash; <?= $arrTag['anzahl'] ?>"></div>
+          <?php endforeach; ?>
+        </div>
+        <div class="lt-achse">
+          <?php foreach ($this->diagramm['tage'] as $intPos => $arrTag): ?>
+            <?php // Nur jeden fünften Tag beschriften, sonst überlappen die Angaben ?>
+            <span><?= (0 === $intPos % 5) ? $arrTag['kurz'] : '' ?></span>
+          <?php endforeach; ?>
+        </div>
+        <p class="lt-hinweis"><?= sprintf($this->lang['statVerlaufSumme'] ?? 'Höchster Tageswert: %s. Im Zeitraum insgesamt: %s.', $this->diagramm['hoechstwert'], $this->diagramm['summe']) ?></p>
+      <?php endif; ?>
+    </div>
+
+    <?php if (!empty($this->monate)): ?>
+      <div class="lt-stat">
+        <h3><?= $this->lang['statMonate'] ?? 'Aufrufe je Monat' ?></h3>
+        <table class="lt-tabelle">
+          <tr>
+            <th><?= $this->lang['statMonat'] ?? 'Monat' ?></th>
+            <th class="lt-zahl"><?= $this->lang['statAnzahl'] ?? 'Aufrufe' ?></th>
+          </tr>
+          <?php foreach ($this->monate as $arrMonat): ?>
+            <tr>
+              <td><?= Contao\StringUtil::specialchars($arrMonat['beschriftung']) ?></td>
+              <td class="lt-zahl"><?= $arrMonat['anzahl'] ?></td>
+            </tr>
+          <?php endforeach; ?>
+        </table>
+      </div>
+    <?php endif; ?>
+
+    <?php if (!empty($this->browser)): ?>
+      <div class="lt-stat">
+        <h3><?= $this->lang['statBrowser'] ?? 'Häufigste Browserkennungen' ?></h3>
+        <table class="lt-tabelle">
+          <tr>
+            <th><?= $this->lang['statKennung'] ?? 'Kennung' ?></th>
+            <th class="lt-zahl"><?= $this->lang['statAnzahl'] ?? 'Aufrufe' ?></th>
+            <th class="lt-zahl"><?= $this->lang['statAnteil'] ?? 'Anteil' ?></th>
+          </tr>
+          <?php foreach ($this->browser as $arrBrowser): ?>
+            <tr>
+              <td class="lt-kennung">
+                <?= Contao\StringUtil::specialchars($arrBrowser['browser']) ?>
+                <span class="lt-balken" style="width:<?= $arrBrowser['anteil'] ?>%"></span>
+              </td>
+              <td class="lt-zahl"><?= $arrBrowser['anzahl'] ?></td>
+              <td class="lt-zahl"><?= number_format($arrBrowser['anteil'], 1, ',', '.') ?>&nbsp;%</td>
+            </tr>
+          <?php endforeach; ?>
+        </table>
+      </div>
+    <?php endif; ?>
+
+  <?php endif; ?>
+
+<?php else: ?>
+
+  <div class="lt-stat">
+    <h2><?= $this->lang['statUebersicht'] ?? 'Aufrufe aller Links' ?></h2>
+    <p class="lt-hinweis"><?= sprintf($this->lang['statSumme'] ?? 'Insgesamt gezählt: %s Aufrufe.', $this->summe) ?></p>
+  </div>
+
+  <?php if (empty($this->zeilen)): ?>
+    <p class="tl_empty"><?= $this->lang['statKeineLinks'] ?? 'Es ist noch kein Link angelegt.' ?></p>
+  <?php else: ?>
+    <table class="lt-tabelle">
+      <tr>
+        <th><?= $this->lang['statLink'] ?? 'Link' ?></th>
+        <th class="lt-zahl"><?= $this->lang['statAnzahl'] ?? 'Aufrufe' ?></th>
+        <th class="lt-zahl"><?= $this->lang['statAlteAdresse'] ?? 'über die alte Adresse' ?></th>
+        <th class="lt-zahl"><?= $this->lang['statLetzter'] ?? 'letzter Aufruf' ?></th>
+      </tr>
+      <?php foreach ($this->zeilen as $arrZeile): ?>
+        <tr>
+          <td>
+            <a href="<?= Contao\StringUtil::ampersand($arrZeile['statistikUrl']) ?>"><?= Contao\StringUtil::specialchars($arrZeile['title']) ?></a>
+            <?php if (!$arrZeile['published']): ?>
+              <span class="lt-hinweis">(<?= $this->lang['statUnveroeffentlicht'] ?? 'nicht veröffentlicht' ?>)</span>
+            <?php endif; ?>
+          </td>
+          <td class="lt-zahl"><?= $arrZeile['gesamt'] ?></td>
+          <td class="lt-zahl"><?= $arrZeile['ueberAlteAdresse'] ?></td>
+          <td class="lt-zahl"><?= '' !== $arrZeile['letzterText'] ? Contao\StringUtil::specialchars($arrZeile['letzterText']) : '&ndash;' ?></td>
+        </tr>
+      <?php endforeach; ?>
+    </table>
+  <?php endif; ?>
+
+<?php endif; ?>

@@ -37,3 +37,27 @@ $GLOBALS['TL_LANG']['tl_linktracker']['einbindungUrl'] = 'Als unmittelbare Adres
 
 $GLOBALS['TL_LANG']['tl_linktracker']['publish_legend'] = 'Veröffentlichung';
 $GLOBALS['TL_LANG']['tl_linktracker']['published'] = array('Veröffentlicht', 'URL veröffentlicht');
+
+// Statistikseite
+$GLOBALS['TL_LANG']['tl_linktracker']['statGesamt'] = 'Aufrufe gesamt';
+$GLOBALS['TL_LANG']['tl_linktracker']['statHeute'] = 'heute';
+$GLOBALS['TL_LANG']['tl_linktracker']['stat7Tage'] = 'letzte 7 Tage';
+$GLOBALS['TL_LANG']['tl_linktracker']['stat30Tage'] = 'letzte 30 Tage';
+$GLOBALS['TL_LANG']['tl_linktracker']['statAlteAdresse'] = 'über die alte Adresse';
+$GLOBALS['TL_LANG']['tl_linktracker']['statVerlauf'] = 'Aufrufe der letzten 30 Tage';
+$GLOBALS['TL_LANG']['tl_linktracker']['statVerlaufSumme'] = 'Höchster Tageswert: %s. Im Zeitraum insgesamt: %s.';
+$GLOBALS['TL_LANG']['tl_linktracker']['statKeineImZeitraum'] = 'In diesem Zeitraum wurde der Link nicht aufgerufen.';
+$GLOBALS['TL_LANG']['tl_linktracker']['statMonate'] = 'Aufrufe je Monat';
+$GLOBALS['TL_LANG']['tl_linktracker']['statMonat'] = 'Monat';
+$GLOBALS['TL_LANG']['tl_linktracker']['statAnzahl'] = 'Aufrufe';
+$GLOBALS['TL_LANG']['tl_linktracker']['statAnteil'] = 'Anteil';
+$GLOBALS['TL_LANG']['tl_linktracker']['statBrowser'] = 'Häufigste Browserkennungen';
+$GLOBALS['TL_LANG']['tl_linktracker']['statKennung'] = 'Kennung';
+$GLOBALS['TL_LANG']['tl_linktracker']['statUebersicht'] = 'Aufrufe aller Links';
+$GLOBALS['TL_LANG']['tl_linktracker']['statSumme'] = 'Insgesamt gezählt: %s Aufrufe.';
+$GLOBALS['TL_LANG']['tl_linktracker']['statLink'] = 'Link';
+$GLOBALS['TL_LANG']['tl_linktracker']['statLetzter'] = 'letzter Aufruf';
+$GLOBALS['TL_LANG']['tl_linktracker']['statKeineLinks'] = 'Es ist noch kein Link angelegt.';
+$GLOBALS['TL_LANG']['tl_linktracker']['statUnveroeffentlicht'] = 'nicht veröffentlicht';
+$GLOBALS['TL_LANG']['tl_linktracker']['statistikUnbekannt'] = 'Zu dieser ID gibt es keinen Link.';
+$GLOBALS['TL_LANG']['tl_linktracker']['ohneKennung'] = 'ohne Kennung';
